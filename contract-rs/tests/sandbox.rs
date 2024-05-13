@@ -13,7 +13,7 @@ async fn test_score_board_contract() -> Result<(), Box<dyn std::error::Error>> {
 
     let alice_outcome = alice_account
         .call(contract.id(), "add_score")
-        .args_json(json!({"account_id": alice_account.id(), "score": 10}))
+        .args_json(json!({"app_name": "test_app", "account_id": alice_account.id(), "score": 10}))
         .deposit(NearToken::from_near(0))
         .transact()
         .await?;
@@ -22,7 +22,7 @@ async fn test_score_board_contract() -> Result<(), Box<dyn std::error::Error>> {
 
     let score: Option<u128> = contract
         .view("get_score")
-        .args_json(json!({"account_id": alice_account.id()}))
+        .args_json(json!({"app_name": "test_app", "account_id": alice_account.id()}))
         .await?
         .json()?;
 
@@ -30,7 +30,7 @@ async fn test_score_board_contract() -> Result<(), Box<dyn std::error::Error>> {
 
     let score: Option<u128> = contract
         .view("get_score")
-        .args_json(json!({"account_id": bob_account.id()}))
+        .args_json(json!({"app_name": "test_app", "account_id": bob_account.id()}))
         .await?
         .json()?;
 
@@ -38,7 +38,9 @@ async fn test_score_board_contract() -> Result<(), Box<dyn std::error::Error>> {
 
     let alice_outcome = alice_account
         .call(contract.id(), "add_score")
-        .args_json(json!({"account_id": alice_account.id(), "score": 100}))
+        .args_json(
+            json!({"app_name": "test_app_2", "account_id": alice_account.id(), "score": 100}),
+        )
         .deposit(NearToken::from_near(0))
         .transact()
         .await?;
@@ -47,10 +49,17 @@ async fn test_score_board_contract() -> Result<(), Box<dyn std::error::Error>> {
 
     let score: Option<u128> = contract
         .view("get_score")
-        .args_json(json!({"account_id": alice_account.id()}))
+        .args_json(json!({"app_name": "test_app", "account_id": alice_account.id()}))
         .await?
         .json()?;
-    assert_eq!(score, Some(110));
+    assert_eq!(score, Some(10));
+
+    let score: Option<u128> = contract
+        .view("get_score")
+        .args_json(json!({"app_name": "test_app_2", "account_id": alice_account.id()}))
+        .await?
+        .json()?;
+    assert_eq!(score, Some(100));
 
     Ok(())
 }
