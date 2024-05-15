@@ -1,8 +1,3 @@
-# Count on NEAR Contract Example
-
-The smart contract exposes methods to interact with a counter stored in the NEAR
-network.
-
 ## How to Build Locally?
 
 Install [`cargo-near`](https://github.com/near/cargo-near) and run:
@@ -45,30 +40,3 @@ NEAR account**!
 # Use near-cli to get the counter value
 near view <contract-account-id> get_num
 ```
-
-### Modify the Counter
-
-`increment`, `decrement` and `reset` change the contract's state, for which they
-are `call` methods.
-
-`Call` methods can only be invoked using a NEAR account, since the account needs
-to pay GAS for the transaction.
-
-```bash
-# Use near-cli to set increment the counter
-near call <contract-account-id> increment --accountId --accountId <your-account>
-```
-
-## Useful Links
-
-- [cargo-near](https://github.com/near/cargo-near) - NEAR smart contract
-  development toolkit for Rust
-- [near CLI-rs](https://near.cli.rs) - Iteract with NEAR blockchain from command
-  line
-- [NEAR Rust SDK Documentation](https://docs.near.org/sdk/rust/introduction)
-- [NEAR Documentation](https://docs.near.org)
-- [NEAR StackOverflow](https://stackoverflow.com/questions/tagged/nearprotocol)
-- [NEAR Discord](https://near.chat)
-- [NEAR Telegram Developers Community Group](https://t.me/neardev)
-- NEAR DevHub: [Telegram](https://t.me/neardevhub),
-  [Twitter](https://twitter.com/neardevhub)

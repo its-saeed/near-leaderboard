@@ -38,6 +38,10 @@ impl LeaderBoard {
             .get(&account_id)
             .map(|score| score.0)
     }
+
+    pub fn get_version(&self) -> String {
+        "0.0.1".to_string()
+    }
 }
 
 #[cfg(test)]
