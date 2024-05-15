@@ -1,6 +1,7 @@
 const nearAPI = require("near-api-js");
 const fs = require("fs");
 const commandLineArgs = require('command-line-args')
+const WebSocket = require('ws');
 
 const { Contract } = nearAPI;
 
@@ -73,6 +74,7 @@ let near = null;
 
 async function main() {
     const optionDefinitions = [
+        { name: 'subscribe', type: Boolean },
         { name: 'add-score', type: Boolean },
         { name: 'get-score', type: Boolean },
         { name: 'account', type: String },
@@ -92,7 +94,10 @@ async function main() {
             viewMethods: ["get_version", "get_score"]
         }
     );
-    if (options['add-score']) {
+    if (options.subscribe) {
+        subscribe();
+    }
+    else if (options['add-score']) {
         const { account, app, score } = options;
         await addScore(account, app, score);
         console.log(`Score added for account: ${account}, app: ${app}, score: ${score}`)
@@ -101,6 +106,30 @@ async function main() {
         const score = await getScore(account, app);
         console.log(`${account} score is: ${score}`)
     }
+}
+
+const subscribe = () => {
+    const ws = new WebSocket('ws://localhost:8080');
+    ws.on('error', console.error);
+
+    ws.on('open', function open() {
+        console.log('open')
+    });
+
+    ws.on('message', async function message(data) {
+        const message = JSON.parse(data);
+        const { action } = message;
+        console.log(`Receive ${action} from the server.`)
+        if (action === 'add-score') {
+            const { app, account, score } = message;
+            await addScore(account, app, score)
+            console.log(`Score added. Account: ${account}, App: ${app}, Score: ${score}`)
+        } else if (action === 'get-score') {
+            const { app, account } = message;
+            const score = await getScore(account, app);
+            console.log(`${account} score is: ${score}`)
+        }
+    });
 }
 
 main().catch((error) => {
