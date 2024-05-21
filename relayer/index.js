@@ -8,9 +8,9 @@ const { Contract } = nearAPI;
 const createKeyStore = async () => {
     const { KeyPair, keyStores } = nearAPI;
 
-    const ACCOUNT_ID = "huge-drop.testnet";
+    const ACCOUNT_ID = "highfalutin-act.testnet";
     const NETWORK_ID = "testnet";
-    const KEY_PATH = "/home/saeed/.near-credentials/testnet/huge-drop.testnet.json";
+    const KEY_PATH = "/home/saeed/.near-credentials/testnet/highfalutin-act.testnet.json";
 
     const credentials = JSON.parse(fs.readFileSync(KEY_PATH))
     const myKeyStore = new keyStores.InMemoryKeyStore();
@@ -45,7 +45,7 @@ const addScore = async (account_id, app_name, score) => {
         throw new Error('Contract is not initialized')
     }
 
-    const account = await near.account("huge-drop.testnet");
+    const account = await near.account("highfalutin-act.testnet");
     await contract.add_score({
         signerAccount: account,
         args: {
@@ -69,6 +69,18 @@ const getScore = async (account_id, app_name) => {
     );
 }
 
+const getScores = async (app_name) => {
+    if (contract === null) {
+        throw new Error('Contract is not initialized')
+    }
+
+    return await contract.get_scores({
+        app_name,
+    },
+    );
+}
+
+
 let contract = null;
 let near = null;
 
@@ -77,6 +89,7 @@ async function main() {
         { name: 'subscribe', type: Boolean },
         { name: 'add-score', type: Boolean },
         { name: 'get-score', type: Boolean },
+        { name: 'get-scores', type: Boolean },
         { name: 'account', type: String },
         { name: 'score', type: Number },
         { name: 'app', type: String }
@@ -88,10 +101,10 @@ async function main() {
     near = nearConnection;
     contract = new Contract(
         nearConnection.connection,
-        "huge-drop.testnet",
+        "highfalutin-act.testnet",
         {
             changeMethods: ["add_score"],
-            viewMethods: ["get_version", "get_score"]
+            viewMethods: ["get_version", "get_score", "get_scores"]
         }
     );
     if (options.subscribe) {
@@ -105,6 +118,10 @@ async function main() {
         const { account, app } = options;
         const score = await getScore(account, app);
         console.log(`${account} score is: ${score}`)
+    } else if (options['get-scores']) {
+        const { app } = options;
+        const scores = await getScores(app);
+        console.log(`Scores for ${app}: ${JSON.stringify(scores)}`)
     }
 }
 
