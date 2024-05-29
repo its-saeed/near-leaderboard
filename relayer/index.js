@@ -1,7 +1,7 @@
 const nearAPI = require("near-api-js");
 const fs = require("fs");
 const commandLineArgs = require('command-line-args')
-const WebSocket = require('ws');
+const GameEventListener = require("./ws");
 
 const { Contract } = nearAPI;
 
@@ -92,7 +92,9 @@ async function main() {
         { name: 'get-scores', type: Boolean },
         { name: 'account', type: String },
         { name: 'score', type: Number },
-        { name: 'app', type: String }
+        { name: 'app', type: String },
+        { name: 'applicationId', type: String },
+        { name: 'nodeUrl', type: String },
     ]
 
     const options = commandLineArgs(optionDefinitions)
@@ -108,7 +110,9 @@ async function main() {
         }
     );
     if (options.subscribe) {
-        subscribe();
+        const { applicationId, nodeUrl } = options;
+        console.log(`Subscribed for the events of ${applicationId}`)
+        subscribe(applicationId, nodeUrl);
     }
     else if (options['add-score']) {
         const { account, app, score } = options;
@@ -125,27 +129,19 @@ async function main() {
     }
 }
 
-const subscribe = () => {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.on('error', console.error);
-
-    ws.on('open', function open() {
-        console.log('open')
+let eventListener;
+let players = {};
+const subscribe = (applicationId, nodeUrl) => {
+    eventListener = new GameEventListener(nodeUrl, applicationId)
+    eventListener.on("NewPlayer", (player) => {
+        console.log(`new player: ${player.id} ${player.name}`)
+        players[player.id] = player.name;
     });
 
-    ws.on('message', async function message(data) {
-        const message = JSON.parse(data);
-        const { action } = message;
-        console.log(`Receive ${action} from the server.`)
-        if (action === 'add-score') {
-            const { app, account, score } = message;
-            await addScore(account, app, score)
-            console.log(`Score added. Account: ${account}, App: ${app}, Score: ${score}`)
-        } else if (action === 'get-score') {
-            const { app, account } = message;
-            const score = await getScore(account, app);
-            console.log(`${account} score is: ${score}`)
-        }
+    eventListener.on("GameOver", (winner) => {
+        addScore(players[winner.winner], 'rsp', 1000).then(() => console.log(`Score added for ${players[winner.winner]}`))
+
+        console.log(winner)
     });
 }
 
